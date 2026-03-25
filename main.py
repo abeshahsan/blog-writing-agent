@@ -1,52 +1,19 @@
-import argparse
 import os
-from pathlib import Path
-from typing import Sequence
-
-import dotenv
-from from_root import from_root
+from bootstrap import bootstrap_env_mode
 
 
-def env_setup(argv: Sequence[str] | None = None) -> str:
-    parser = argparse.ArgumentParser(
-        description="Run the blog writing agent with optional environment mode"
-    )
-    parser.add_argument(
-        "--env",
-        choices=["development", "production", "test"],
-        default=os.getenv("ENV_MODE", "development"),
-        help="Environment mode to load",
-    )
+os.environ.setdefault("ENV_MODE", "development")
+ENV_MODE = bootstrap_env_mode()
 
-    args = parser.parse_args(argv)
-    env_mode = args.env
-    project_root = from_root()
-
-    base_env_path = project_root / ".env"
-    selected_env_path = project_root / f".env.{env_mode}"
-
-    if base_env_path.exists():
-        dotenv.load_dotenv(dotenv_path=base_env_path, override=False)
-
-    if not selected_env_path.exists():
-        raise FileNotFoundError(f"Environment file not found: {selected_env_path}")
-
-    dotenv.load_dotenv(dotenv_path=selected_env_path, override=True)
-    os.environ["ENV_MODE"] = env_mode
-    return env_mode
+from blog_writing_agent import BlogService
+from blog_writing_agent.config import log_runtime_config
+from blog_writing_agent.logging_utils import configure_logging
 
 
 def main() -> None:
-    env_mode = env_setup()
-
-    from blog_writing_agent.logging_utils import configure_logging
-
-    logger = configure_logging(env_mode)
+    logger = configure_logging(ENV_MODE)
     logger.info("starting blog writing agent")
-    logger.info("using env: %s", env_mode)
-
-    from blog_writing_agent import BlogService
-    from blog_writing_agent.config import log_runtime_config
+    logger.info("using env: %s", ENV_MODE)
 
     log_runtime_config()
 
@@ -55,6 +22,8 @@ def main() -> None:
     result = service.generate_blog("Write a blog on Self Attention")
     logger.info("blog generated successfully")
     logger.debug("generated markdown length=%s", len(result["final"]))
+    if "file_path" in result:
+        logger.debug("file saved at=%s", result["file_path"])
     print(result["final"])
 
 
