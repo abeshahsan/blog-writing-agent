@@ -12,7 +12,7 @@ from blog_writing_agent.exceptions import (
 )
 
 
-def build_llm_client() -> ChatOpenRouter:
+def build_cloud_llm_client() -> ChatOpenRouter:
     if not OPENROUTER_API_KEY:
         raise MissingAPIKeyException("OPENROUTER_API_KEY is missing")
 
@@ -28,5 +28,5 @@ def build_llm_client() -> ChatOpenRouter:
         raise InvalidModelConfigurationException(str(exc)) from exc
 
 
-def get_llm_client() -> ChatOpenRouter:
-    return build_llm_client()
+def get_cloud_llm_client() -> ChatOpenRouter:
+    return build_cloud_llm_client()
