@@ -38,12 +38,23 @@ def env_setup(argv: Sequence[str] | None = None) -> str:
 
 def main() -> None:
     env_mode = env_setup()
-    print(f"Using env: {env_mode}")
+
+    from blog_writing_agent.logging_utils import configure_logging
+
+    logger = configure_logging(env_mode)
+    logger.info("starting blog writing agent")
+    logger.info("using env: %s", env_mode)
 
     from blog_writing_agent import BlogService
+    from blog_writing_agent.config import log_runtime_config
+
+    log_runtime_config()
 
     service = BlogService()
+    logger.debug("service initialized")
     result = service.generate_blog("Write a blog on Self Attention")
+    logger.info("blog generated successfully")
+    logger.debug("generated markdown length=%s", len(result["final"]))
     print(result["final"])
 
 

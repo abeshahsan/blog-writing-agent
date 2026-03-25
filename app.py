@@ -36,4 +36,9 @@ def env_setup(argv: Sequence[str] | None = None) -> str:
     return env_mode
 
 
-env_setup()
+_env_mode = env_setup()
+
+from blog_writing_agent.logging_utils import configure_logging
+
+
+configure_logging(_env_mode)
