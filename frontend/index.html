@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Blog Writer</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <header class="brand">
+        <img
+          src="https://img.icons8.com/fluency/96/artificial-intelligence.png"
+          alt="AI logo"
+          class="logo"
+        />
+        <div>
+          <h1>AI Blog Writer</h1>
+          <p>Generate markdown from a topic and preview it instantly.</p>
+        </div>
+      </header>
+
+      <form id="topic-form" class="form">
+        <label for="topic">Topic</label>
+        <textarea
+          id="topic"
+          name="topic"
+          rows="3"
+          maxlength="120"
+          placeholder="Example: Self Attention in Transformers"
+          required
+        ></textarea>
+        <div class="meta-row">
+          <span id="counter">0 / 120 chars</span>
+          <span id="word-counter">0 / 20 words</span>
+        </div>
+        <p id="error" class="error" hidden></p>
+        <button id="submit-btn" type="submit">Generate Blog</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Preview</h2>
+      <p id="status" class="status">Waiting for input.</p>
+      <article id="preview" class="preview"></article>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
