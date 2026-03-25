@@ -8,6 +8,7 @@ setup(
         "langchain",
         "langchain-openai",
         "langchain-openrouter",
+        "langchain-ollama",
         "langchain-community",
         "python-dotenv",
         "fastapi",

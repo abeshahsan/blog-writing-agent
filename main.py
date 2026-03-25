@@ -20,7 +20,7 @@ def env_setup(argv: Sequence[str] | None = None) -> str:
 
     args = parser.parse_args(argv)
     env_mode = args.env
-    project_root = Path(from_root())
+    project_root = from_root()
 
     base_env_path = project_root / ".env"
     selected_env_path = project_root / f".env.{env_mode}"
