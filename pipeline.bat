@@ -13,6 +13,9 @@ if "%IMAGE_NAME%"=="" set IMAGE_NAME=blog-writing-agent:latest
 docker build -t %IMAGE_NAME% . || goto :error
 
 echo Pipeline completed: %IMAGE_NAME%
+
+echo To run the Docker container:
+echo docker run -d --name blog-writing-agent -p 8000:8000 %IMAGE_NAME%
 goto :eof
 
 :error
