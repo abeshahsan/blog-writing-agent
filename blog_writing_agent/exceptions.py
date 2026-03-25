@@ -5,10 +5,10 @@ class BaseException(Exception):
         super().__init__(message)
 
     def __str__(self):
-        return f"{self.__class__.__name__}: {super().__str__()}"
+        return f"{self.__class__.__name__}: {self.args[0]}"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}('{super().__str__()}')"
+        return f"{self.__class__.__name__}('{self.args[0]}')"
 
 
 class LLMException(Exception):
@@ -80,6 +80,35 @@ class OutputWriteException(BaseException):
     def __init__(self, message: str):
         super().__init__(message)
 
+
+class ReducerNodeException(BaseException):
+    """Raised when the reducer node fails due to missing state or other issues."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class FanoutNodeException(BaseException):
+    """Raised when the fanout node fails due to missing state or other issues."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class OrchestratorNodeException(BaseException):
+    """Raised when the orchestrator node fails due to LLM errors or other issues."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class WorkerNodeException(BaseException):
+    """Raised when the worker node fails due to LLM errors or other issues."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 __all__ = [
     "BaseException",
     "LLMException",
@@ -92,4 +121,8 @@ __all__ = [
     "PlanGenerationException",
     "SectionGenerationException",
     "OutputWriteException",
+    "ReducerNodeException",
+    "FanoutNodeException",
+    "OrchestratorNodeException",
+    "WorkerNodeException",
 ]

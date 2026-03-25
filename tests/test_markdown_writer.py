@@ -7,6 +7,18 @@ def test_make_output_filename():
     assert markdown_writer.make_output_filename("Hello World") == "hello_world.md"
 
 
+def test_make_output_filename_sanitizes_windows_invalid_characters():
+    title = 'Understanding Self-Attention: The Core of Modern NLP?*'
+    assert (
+        markdown_writer.make_output_filename(title)
+        == "understanding_self-attention_the_core_of_modern_nlp.md"
+    )
+
+
+def test_make_output_filename_falls_back_when_title_is_symbols_only():
+    assert markdown_writer.make_output_filename('::""***|||') == "untitled.md"
+
+
 def test_write_markdown_output_writes_file(tmp_path, monkeypatch):
     monkeypatch.setattr(markdown_writer, "PROJECT_ROOT", Path(tmp_path))
 

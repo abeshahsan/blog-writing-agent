@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from blog_writing_agent.config import PROJECT_ROOT
 from blog_writing_agent.exceptions import OutputWriteException
@@ -9,8 +10,12 @@ logger = get_logger(__name__)
 
 
 def make_output_filename(title: str) -> str:
-    filename = title.lower().replace(" ", "_") + ".md"
-    logger.debug("generated output filename=%s from title=%s", filename, title)
+    normalized = title.strip().lower().replace(" ", "_")
+    # Windows-invalid characters can create malformed paths (notably ':' can create ADS).
+    normalized = re.sub(r'[\\/:*?"<>|]+', "_", normalized)
+    normalized = re.sub(r"_+", "_", normalized).strip("._")
+    filename = (normalized or "untitled") + ".md"
+    logger.info("generated output filename=%s from title=%s", filename, title)
     return filename
 
 
@@ -25,7 +30,7 @@ def write_markdown_output(filename: str, content: str) -> str:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(content)
 
-        logger.info("markdown output written")
+        logger.info("markdown output written in %s", str(output_path))
         return str(output_path)
     except Exception as exc:
         logger.exception("failed to write markdown output")

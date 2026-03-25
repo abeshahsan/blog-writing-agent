@@ -4,11 +4,16 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.types import Send
 
 from blog_writing_agent.exceptions import (
+    FanoutNodeException,
     LLMRateLimitException,
     PlanGenerationException,
+    ReducerNodeException,
     SectionGenerationException,
 )
-from blog_writing_agent.io.markdown_writer import make_output_filename, write_markdown_output
+from blog_writing_agent.io.markdown_writer import (
+    make_output_filename,
+    write_markdown_output,
+)
 from blog_writing_agent.logging_utils import get_logger
 from blog_writing_agent.models import GraphState, Plan
 
@@ -17,7 +22,9 @@ class BlogGraphNodes:
     def __init__(self, llm_client: Any):
         self.llm = llm_client
         self.logger = get_logger(__name__)
-        self.logger.debug("graph nodes initialized with llm=%s", type(llm_client).__name__)
+        self.logger.debug(
+            "graph nodes initialized with llm=%s", type(llm_client).__name__
+        )
 
     def orchestrator_node(self, state: GraphState) -> dict:
         try:
@@ -34,7 +41,9 @@ class BlogGraphNodes:
                 ]
             )
             self.logger.info("plan generated")
-            self.logger.debug("plan title=%s tasks=%s", plan.blog_title, len(plan.tasks))
+            self.logger.debug(
+                "plan title=%s tasks=%s", plan.blog_title, len(plan.tasks)
+            )
             return {"plan": plan}
         except Exception as exc:
             self.logger.exception("orchestrator failed")
@@ -43,9 +52,14 @@ class BlogGraphNodes:
             raise PlanGenerationException(str(exc)) from exc
 
     def fanout_sections(self, state: GraphState):
+        if "plan" not in state:
+            self.logger.error("fanout missing plan in state")
+            raise FanoutNodeException("Fanout node requires 'plan' in state")
         self.logger.debug("fanout started with tasks=%s", len(state["plan"].tasks))
         return [
-            Send("worker", {"task": task, "topic": state["topic"], "plan": state["plan"]})
+            Send(
+                "worker", {"task": task, "topic": state["topic"], "plan": state["plan"]}
+            )
             for task in state["plan"].tasks
         ]
 
@@ -61,7 +75,9 @@ class BlogGraphNodes:
 
             section_md = self.llm.invoke(
                 [
-                    SystemMessage(content="Write one clean Markdown section."),
+                    SystemMessage(
+                        content="Write one clean Markdown section. Don't wrap it with '```markdown' and '```'.For inline math, variables, use single $ and for display math, use double $$ without any backticks. The section should be based on the following task and brief. Use the blog title and topic for context."
+                    ),
                     HumanMessage(
                         content=(
                             f"Blog: {blog_title}\n"
@@ -84,14 +100,23 @@ class BlogGraphNodes:
 
     def reducer_node(self, state: GraphState) -> dict:
         self.logger.info("reducer started")
+        if "plan" not in state or "sections" not in state:
+            self.logger.error("reducer missing plan or sections in state")
+            raise ReducerNodeException(
+                "Reducer node requires 'plan' and 'sections' in state"
+            )
         title = state["plan"].blog_title
         body = "\n\n".join(state["sections"]).strip()
         final_md = f"# {title}\n\n{body}\n"
-        self.logger.debug("reducer assembled sections=%s chars=%s", len(state["sections"]), len(final_md))
+        self.logger.debug(
+            "reducer assembled sections=%s chars=%s",
+            len(state["sections"]),
+            len(final_md),
+        )
 
         filename = make_output_filename(title)
         output_path = write_markdown_output(filename, final_md)
         self.logger.info("markdown persisted")
         self.logger.debug("output_file=%s", output_path)
 
-        return {"final": final_md}
+        return {"final": final_md, "file_path": output_path}

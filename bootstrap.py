@@ -8,13 +8,20 @@ VALID_ENV_MODES = {"development", "production", "test"}
 
 
 def bootstrap_env_mode() -> str:
-    env_mode = os.environ.get("ENV_MODE")
+    passed_env_mode = os.environ.get("ENV_MODE")
+    env_mode = passed_env_mode or "development"
 
-    if not env_mode:
-        raise RuntimeError("ENV_MODE is not set")
+    # Keep development as the default, but only allow explicit overrides to
+    # production or test.
+    if passed_env_mode and passed_env_mode not in {"production", "test"}:
+        raise ValueError(
+            "When ENV_MODE is set explicitly, it must be either 'production' or 'test'"
+        )
 
     if env_mode not in VALID_ENV_MODES:
         raise ValueError(f"Invalid ENV_MODE: {env_mode}")
+
+    os.environ["ENV_MODE"] = env_mode
 
     project_root = Path(__file__).resolve().parent
     base_env_path = project_root / ".env"
@@ -27,5 +34,5 @@ def bootstrap_env_mode() -> str:
         raise FileNotFoundError(f"Environment file not found: {selected_env_path}")
 
     dotenv.load_dotenv(dotenv_path=selected_env_path, override=True)
-    os.environ["ENV_MODE"] = env_mode
+
     return env_mode
