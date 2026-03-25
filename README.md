@@ -113,7 +113,7 @@ Docker runtime details:
 1. Clone repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/abeshahsan/blog-writing-agent.git
 cd blog-writing-agent
 ```
 
