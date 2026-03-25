@@ -19,6 +19,25 @@ def test_base_exception_string_and_repr():
     assert repr(err) == "BaseException('base failure')"
 
 
+def test_base_exception_extracts_provider_details_from_validation_payload():
+    message = (
+        "Response validation failed: 5 validation errors for Unmarshaller\n"
+        "body.id\n"
+        "  Field required [type=missing, "
+        "input_value={'error': {'message': 'Provider returned error', 'code': 502}}, "
+        "input_type=dict]"
+    )
+
+    err = BaseException(message)
+
+    assert err.details["provider_code"] == 502
+    assert err.details["provider_message"] == "Provider returned error"
+    assert err.details["validation_error_count"] == 5
+    assert err.details["validation_target"] == "Unmarshaller"
+    assert "provider_code: 502" in str(err)
+    assert "provider_message: Provider returned error" in str(err)
+
+
 def test_llm_invocation_exception_inheritance():
     err = LLMInvocationException("invoke failed")
     assert isinstance(err, LLMException)
